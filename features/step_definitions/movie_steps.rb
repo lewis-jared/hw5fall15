@@ -28,7 +28,7 @@ Given /^I am on the RottenPotatoes home page$/ do
    click_on "More about #{title}"
  end
 
- Then /^(?:|I )should see "([^"]*)"$/ do |text|
+ Then /^(?:|I )should see "([^""]*)"$/ do |text|
     expect(page).to have_content(text)
  end
 
@@ -46,12 +46,16 @@ Given /^I am on the RottenPotatoes home page$/ do
 # Add a declarative step here for populating the DB with movies.
 
 Given /the following movies have been added to RottenPotatoes:/ do |movies_table|
-  pending  # Remove this statement when you finish implementing the test step
+  #pending  # Remove this statement when you finish implementing the test step
+  
+  Movie.delete_all
   movies_table.hashes.each do |movie|
     # Each returned movie will be a hash representing one row of the movies_table
     # The keys will be the table headers and the values will be the row contents.
     # Entries can be directly to the database with ActiveRecord methods
     # Add the necessary Active Record call(s) to populate the database.
+    
+    Movie.find_or_create_by movie
   end
 end
 
@@ -59,16 +63,62 @@ When /^I have opted to see movies rated: "(.*?)"$/ do |arg1|
   # HINT: use String#split to split up the rating_list, then
   # iterate over the ratings and check/uncheck the ratings
   # using the appropriate Capybara command(s)
-  pending  #remove this statement after implementing the test step
+ # pending  #remove this statement after implementing the test step
+  ratings = arg1.split(/, /)
+  for i in 0...ratings.size
+    check("ratings_#{ratings[i]}")
+    click_button 'Refresh'
+  end
 end
 
 Then /^I should see only movies rated: "(.*?)"$/ do |arg1|
-  pending  #remove this statement after implementing the test step
+  #pending  #remove this statement after implementing the test step
+  result=false
+  ratings = arg1.split(/, /)
+  rows=0
+  all("tr").each do |tr|
+      rows = rows+1
+  end
+    if rows == Movie.count
+      result=true
+    end
 end
 
 Then /^I should see all of the movies$/ do
-  pending  #remove this statement after implementing the test step
+  #pending  #remove this statement after implementing the test step
+  result=false
+  rows=0
+  all("tr").each do |tr|
+      rows = rows+1
+  end
+    if rows == Movie.count
+      result=true
+    end
 end
 
+When /^I have selected the Movie Title heading$/ do 
+  visit movies_path
+  click_on "Movie Title"
+end
 
+Then /^I should see "(.*?)" before "(.*?)"$/ do |title, title2|
+  result=false
+  firstTitle=false
+  secondTitle=false
+  all("tr").each do |tr|
+      if tr.has_content?(title)
+          firstTitle=true
+          if secondTitle == false
+              result=true
+              break
+          end
+      elsif tr.has_content?(title2)
+           secondTitle=true
+           break
+      end
+   end
+end
 
+When /^I have selected the Release Date heading$/ do 
+  click_on "Release Date"
+end
